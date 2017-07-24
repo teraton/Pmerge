@@ -136,7 +136,7 @@ function mergeAuthor(targetObject,objectList){
 }
 function mergeScripts(targetObject,objectList){
     console.log(LOG + "Merging scripts");
-    var targetList = {};
+    let targetList = {};
 
     let targetObjectdeps = targetObject.dependencies;
     let targetObjectdepsKeys = Object.keys(targetObjectdeps);
@@ -162,13 +162,14 @@ function mergeScripts(targetObject,objectList){
         })
               
     });
+    targetObject.scripts = targetList;
 };
 
 function mergeDeps(targetObject,objectList){
 
     console.log(LOG + "Merging dependencies");
     //When merging deps, by default grab the latest versions and use those. This might break the original projects, but then we have to "just" fix them.
-    var targetList = {};
+    let targetList = {};
     //add values from target first
 
     let targetObjectdeps = targetObject.dependencies;
