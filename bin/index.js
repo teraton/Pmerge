@@ -14,17 +14,19 @@ const ERR = "ERROR: ";
 
 //
 var conflictingDependencies = [];
+var conflictingScripts = [];
 
 //we will probably need a version merge strategy option here also
 program
-    .version('0.0.1')
+    .version('1.0.0')
     .option('-m, --mainfile [mainFile]','main package.json file to use')
     .option('-p, --path [path]', "path where to look for additional package.json files")
-    .option('-a, --authorMerge',"merges authors of all files to main file")
+    .option('-a, --authorMerge',"merges authors from other package.json files")
+    .option('-s --scriptMerge',"merge scripts from other package.json files EXPERIMENTAL")
     .option('-t --targetFile', "target output file, otherwise package.json will be overwritten")
     .parse(process.argv);
 if(!program.path){
-    console.log(ERR + "No path to packages specified.")
+    console.log(ERR + "No path to packages.json files specified.")
     process.exit(1);
 }
 
@@ -89,7 +91,11 @@ if(program.path) {
     else{
         console.log(LOG + "No conflicting dependencies found");
     }
-    conflictingDependencies.forEach(key => {
+
+    if(conflictingScripts.length > 0 && program.scriptMerge){
+    console.log(LOG + "The following scripts were conflicting be sure to check for errors:");
+    }
+    conflictingScripts.forEach(key => {
         console.log(LOG + "    "+ key);
     })
 }
@@ -106,8 +112,13 @@ function mergeJSON(mainObject, mergeObjects ){
     let targetObject = mainObject || {};
 
     if(program.authorMerge){
-        mergeAuthor(targetObject,[mainObject, ...mergeObjects])
+        mergeAuthor(targetObject,[mainObject, ...mergeObjects]);
     }
+
+    if(program.scriptMerge){
+        mergeScripts(targetObject,[mainObject, ...mergeObjects]);
+    }
+
     mergeDeps(targetObject,[mainObject, ...mergeObjects]);
 
     return targetObject;
@@ -123,6 +134,36 @@ function mergeAuthor(targetObject,objectList){
     })
     return authorList.join(',');
 }
+function mergeScripts(targetObject,objectList){
+    console.log(LOG + "Merging scripts");
+    var targetList = {};
+
+    let targetObjectdeps = targetObject.dependencies;
+    let targetObjectdepsKeys = Object.keys(targetObjectdeps);
+    targetObjectdepsKeys.forEach(key => {
+            
+            targetList[key] = targetObjectdeps[key];  
+    });
+    objectList.forEach(JSONOBject => {
+        let scripts = JSONOBject.scripts;
+        let scriptsKeys = Object.keys(scripts);
+
+        scriptsKeys.forEach(key =>{
+            if(targetList.hasOwnProperty(key)){
+                //a script with the same name has been found, merge with scriptname+time now, a silly way to do it but fast for debugging
+                
+                let conflictScript = key + "_conflicting_"+ Date.now();
+                console.log(LOG + "A conflicting script name has been found, renaming to "+ conflictScript);
+                targetList[conflictScript] = scripts[key];     
+            }
+            else{
+                targetList[key] = deps[key];
+            }
+        })
+              
+    });
+};
+
 function mergeDeps(targetObject,objectList){
 
     console.log(LOG + "Merging dependencies");
