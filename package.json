@@ -1,0 +1,23 @@
+{
+  "name": "package.json_combiner",
+  "version": "1.0.0",
+  "description": "A package that can be used to combine multiple package.json files into one main file.",
+  "main": "index.js",
+  "bin":{
+    "pmerge": "bin/index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "package.json",
+    "merge",
+    "npm"
+  ],
+  "author": "Henri Terho",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^2.9.0",
+    "package-merge": "^0.1.2"
+  }
+}
